@@ -418,6 +418,11 @@
           <GroupName>FWlib</GroupName>
           <Files>
             <File>
+              <FileName>stm32f10x_exti.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\FWlib\src\stm32f10x_exti.c</FilePath>
+            </File>
+            <File>
               <FileName>stm32f10x_gpio.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\FWlib\src\stm32f10x_gpio.c</FilePath>

@@ -11,10 +11,6 @@
 int main(void) {
     SystemInit(); //配置系统时钟为72M
     LED_GPIO_Config(); //LED端口初始化
-    Key_GPIO_Config(); //按键端口初始化
-
-    while (1) {
-        if (Key_Scan(GPIOA, GPIO_Pin_0) == KEY_ON) //判断按键是否按下
-            GPIO_WriteBit(GPIOC, GPIO_Pin_13, (BitAction)((1 - GPIO_ReadOutputDataBit(GPIOC, GPIO_Pin_13)))); //LED电平翻转
-    }
+    Key_Init(); //按键端口初始化
+    while (1) {}
 }

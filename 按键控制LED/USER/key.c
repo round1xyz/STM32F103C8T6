@@ -9,10 +9,6 @@
 ***********************************************/
 #include "key.h"
 
-void Delay(__IO u32 nCount) {
-    for (; nCount != 0; nCount--);
-}
-
 /* 配置按键用到的I/O口 */
 void Key_GPIO_Config(void) {
     GPIO_InitTypeDef GPIO_InitStructure;
@@ -23,17 +19,36 @@ void Key_GPIO_Config(void) {
     GPIO_Init(GPIOA, &GPIO_InitStructure); //初始化端口
 }
 
-/* 检测是否有按键按下 */
-u8 Key_Scan(GPIO_TypeDef *GPIOx, u16 GPIO_Pin) {
-    if (GPIO_ReadInputDataBit(GPIOx, GPIO_Pin) == KEY_ON) {
-        /* 延时消抖 */
-        Delay(50000);
-        if (GPIO_ReadInputDataBit(GPIOx, GPIO_Pin) == KEY_ON) {
-            /* 等待按键释放 */
-            while (GPIO_ReadInputDataBit(GPIOx, GPIO_Pin) == KEY_ON);
-            return KEY_ON;
-        } else
-            return KEY_OFF;
-    } else
-        return KEY_OFF;
+/* 按键中断优先级配置 */
+void Key_NVIC_Config(void) {
+    NVIC_InitTypeDef NVIC_InitStructure;
+    NVIC_PriorityGroupConfig(NVIC_PriorityGroup_1); //组优先级
+    NVIC_InitStructure.NVIC_IRQChannel = EXTI0_IRQn;
+    NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0; //抢占优先级
+    NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0; //副优先级
+    NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE; //中断使能
+    NVIC_Init(&NVIC_InitStructure);
+}
+
+/* 按键外部中断配置 */
+void Key_EXIT_Config(void) {
+    EXTI_InitTypeDef EXTI_InitStructure;
+    EXTI_InitStructure.EXTI_Line = EXTI_Line0; //外部中断线
+    EXTI_InitStructure.EXTI_Mode = EXTI_Mode_Interrupt; //外部中断模式
+    EXTI_InitStructure.EXTI_Trigger = EXTI_Trigger_Falling; //下降沿触发
+    EXTI_InitStructure.EXTI_LineCmd = ENABLE;
+    EXTI_Init(&EXTI_InitStructure);
+}
+
+void Key_Init(void) {
+    Key_GPIO_Config();
+    Key_NVIC_Config();
+    Key_EXIT_Config();
+}
+
+void EXTI0_IRQHandler(void) {
+    if (EXTI_GetITStatus(EXTI_Line0) != RESET) {
+        GPIO_WriteBit(GPIOC, GPIO_Pin_13, (BitAction)(1 - GPIO_ReadOutputDataBit(GPIOC, GPIO_Pin_13)));
+        EXTI_ClearITPendingBit(EXTI_Line0); //清除中断标志位
+    }
 }
